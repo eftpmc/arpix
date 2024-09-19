@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ThemeSwitcher from "@/app/components/ThemeSwitcher";
-import { AuthProvider } from "@/contexts/AuthContext";
 import AuthButton from "@/app/components/AuthButton";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -39,7 +39,7 @@ export default function RootLayout({
                 </div>
                 <div className="flex-1 flex justify-end items-center">
                     <ThemeSwitcher />
-                    <AuthButton /> {/* Add AuthButton next to the ThemeSwitcher */}
+                    <AuthButton />
                 </div>
             </header>
             <main>{children}</main>

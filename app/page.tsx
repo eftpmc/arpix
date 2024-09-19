@@ -8,7 +8,7 @@ export default function Home() {
     const { user } = useAuth(); // Use authentication context to get the user
 
     return (
-        <div className="flex bg-base-300 items-center justify-center min-h-screen p-4 py-20 font-[family-name:var(--font-geist-sans)]">
+        <div className="flex bg-base-300 items-center justify-center min-h-screen p-4 pt-20 font-[family-name:var(--font-geist-sans)]">
                 {user ? <Dashboard user={user} /> : <Login />}
         </div>
     );

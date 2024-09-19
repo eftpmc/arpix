@@ -1,4 +1,5 @@
-import { User } from "@supabase/supabase-js"; // Assuming you're using Supabase for user
+import { User } from "@supabase/supabase-js";
+import Link from 'next/link'
 import {
     FileText,
     BookOpen,
@@ -104,8 +105,10 @@ export default function Dashboard({ user }: { user: User }) {
             </div>
 
             {/* Footer Section */}
-            <footer className="text-center text-sm text-gray-500">
-                Carefully crafted with <span className="text-pink-500">♥</span>
+            <footer className="pt-20 pb-5 text-center text-sm text-gray-500">
+                <Link href="https://aritools.xyz" target="_blank" className="hover:bg-base-100 p-2 rounded-lg">
+                    Carefully crafted with <span className="text-pink-500 p-1">♥</span>
+                </Link>
             </footer>
         </div>
     );

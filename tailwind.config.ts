@@ -18,7 +18,7 @@ const config: Config = {
     require('daisyui'),
   ],
   daisyui: {
-    themes: ["light", "dark"],
+    themes: ["light", "dark"]
   },
 };
 export default config;
