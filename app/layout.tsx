@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import ThemeSwitcher from "@/app/components/ThemeSwitcher";
 import AuthButton from "@/app/components/AuthButton";
+import Logo from "@/app/components/Logo"
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = localFont({
@@ -33,9 +34,10 @@ export default function RootLayout({
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
             <header className="absolute top-0 left-0 w-full flex bg-base-300 items-center justify-between p-2">
-                <div className="flex-1" />
-                <div className="flex-1 text-center">
-                    <h1 className="text-xl font-bold text-base-content">arpi</h1>
+                <div className="flex-1 flex justify-start items-center ml-2">
+                    <Logo/>
+                </div>
+                <div className="flex-1 flex justify-center items-center">
                 </div>
                 <div className="flex-1 flex justify-end items-center">
                     <ThemeSwitcher />
