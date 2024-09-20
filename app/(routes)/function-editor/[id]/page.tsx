@@ -27,6 +27,7 @@ const FunctionEditor = () => {
     useEffect(() => {
         // Define the Nord theme once Monaco is available
         if (monaco) {
+            // @ts-ignore
             monaco.editor.defineTheme('dracula', draculaTheme);
             setIsThemeLoaded(true); // Mark theme as loaded
         }
