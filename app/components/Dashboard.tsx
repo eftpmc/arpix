@@ -2,14 +2,9 @@ import { User } from "@supabase/supabase-js";
 import Link from 'next/link';
 import FunctionContainer from './FunctionContainer';
 import {
-    FileText,
-    BookOpen,
-    GraduationCap,
-    Video,
     PlusSquare,
     Terminal,
     GitGraph,
-    Tv,
 } from "lucide-react";
 
 export default function Dashboard({ user }: { user: User }) {
