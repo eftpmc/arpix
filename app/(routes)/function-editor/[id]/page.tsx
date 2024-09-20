@@ -26,7 +26,7 @@ const FunctionEditor = () => {
 
     useEffect(() => {
         if (monaco) {
-            // @ts-expect-error
+            // @ts-expect-error string used for theme in file
             monaco.editor.defineTheme('dracula', draculaTheme);
             setIsThemeLoaded(true);
         }
