@@ -20,16 +20,15 @@ const FunctionEditor = () => {
     const [code, setCode] = useState('');
     const [functionName, setFunctionName] = useState('');
     const [editorTheme, setEditorTheme] = useState('vs-light');
-    const [isThemeLoaded, setIsThemeLoaded] = useState(false); // State to track theme load
+    const [isThemeLoaded, setIsThemeLoaded] = useState(false);
     const editorRef = useRef(null);
     const router = useRouter();
 
     useEffect(() => {
-        // Define the Nord theme once Monaco is available
         if (monaco) {
-            // @ts-ignore
+            // @ts-expect-error
             monaco.editor.defineTheme('dracula', draculaTheme);
-            setIsThemeLoaded(true); // Mark theme as loaded
+            setIsThemeLoaded(true);
         }
     }, [monaco]);
 
