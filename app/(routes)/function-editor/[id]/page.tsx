@@ -2,76 +2,59 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft, Play, Save, Clipboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Editor, { useMonaco, OnMount } from '@monaco-editor/react';
 import draculaTheme from '@/themes/Dracula.json';
+import { useProfile } from '@/contexts/ProfileContext';
 import * as monacoEditor from 'monaco-editor';
-
-// Define the structure of the function data
-interface FunctionData {
-    id: number;
-    name: string;
-    code: string;
-}
 
 interface CustomError extends Error {
     message: string;
 }
 
-// Simulating storage for functions in-memory
-const functions: FunctionData[] = [
-    { id: 1, name: 'Function 1', code: 'console.log("Function 1");' },
-    { id: 2, name: 'Function 2', code: 'console.log("Function 2");' },
-];
-
 const FunctionEditor = () => {
-    const { id } = useParams<{ id: string }>(); // Define the type for useParams
+    const { id } = useParams<{ id: string }>();
+    const { user, functions, updateFunctions } = useProfile();
     const monaco = useMonaco();
-    const [code, setCode] = useState<string>(''); // State to store the function code
-    const [functionName, setFunctionName] = useState<string>(''); // State to store the function name
-    const [editorTheme, setEditorTheme] = useState<string>('vs-light'); // State to store the theme
-    const [isThemeLoaded, setIsThemeLoaded] = useState<boolean>(false); // State to track theme load
-    const editorRef = useRef<monacoEditor.editor.IStandaloneCodeEditor | null>(null); // Ref for the editor instance
+    const [code, setCode] = useState<string>('');
+    const [functionName, setFunctionName] = useState<string>('');
+    const [editorTheme, setEditorTheme] = useState<string>('vs-light');
+    const [isThemeLoaded, setIsThemeLoaded] = useState<boolean>(false);
+    const [apiEndpoint, setApiEndpoint] = useState<string | null>(null);
+    const editorRef = useRef<monacoEditor.editor.IStandaloneCodeEditor | null>(null);
     const router = useRouter();
 
     useEffect(() => {
-        // Define the Dracula theme once Monaco is available
         if (monaco) {
-            // Ensure the theme data is typed correctly
             const theme: monacoEditor.editor.IStandaloneThemeData = draculaTheme as monacoEditor.editor.IStandaloneThemeData;
             monaco.editor.defineTheme('dracula', theme);
-            setIsThemeLoaded(true); // Mark theme as loaded
+            setIsThemeLoaded(true);
         }
     }, [monaco]);
 
     useEffect(() => {
-        // Load the function data based on the ID
         const functionData = functions.find((fn) => fn.id === parseInt(id, 10));
         if (functionData) {
             setFunctionName(functionData.name);
             setCode(functionData.code);
         }
-    }, [id]);
+    }, [id, functions]);
 
     useEffect(() => {
-        // Function to update the editor theme based on the document's data-theme attribute
         const updateEditorTheme = () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             setEditorTheme(currentTheme === 'dark' ? 'dracula' : 'vs-light');
         };
 
-        // Initial check and update
         updateEditorTheme();
 
-        // Observe changes to the data-theme attribute
         const observer = new MutationObserver(updateEditorTheme);
         observer.observe(document.documentElement, {
             attributes: true,
             attributeFilter: ['data-theme'],
         });
 
-        // Cleanup observer on component unmount
         return () => {
             observer.disconnect();
         };
@@ -84,17 +67,47 @@ const FunctionEditor = () => {
     const isCustomError = (error: unknown): error is CustomError => {
         return typeof error === 'object' && error !== null && 'message' in error;
     };
-    
+
     const runCode = () => {
         try {
-            const result = eval(`(function(){ ${code} })()`);
+            const result = eval(`(async () => { ${code} })()`);
             console.log('Result:', result);
-        } catch (error:unknown) {
-            if (isCustomError(error)) { // Narrow down the type using a type guard
+        } catch (error: unknown) {
+            if (isCustomError(error)) {
                 console.error('Error executing code:', error.message);
             } else {
                 console.error('Unknown error occurred');
             }
+        }
+    };
+
+    // Function to save the function code to the backend and generate API URL
+    const saveFunction = async () => {
+        try {
+            const updatedFunctions = functions.map((fn) =>
+                fn.id === parseInt(id, 10) ? { ...fn, code } : fn
+            );
+            updateFunctions(updatedFunctions);
+
+            // Generate the API URL
+            if (user) {
+                const apiUrl = `${window.location.origin}/api/functions?id=${id}`;
+                setApiEndpoint(apiUrl);
+                console.log('Function saved and API URL generated:', apiUrl);
+            }
+        } catch (error: unknown) {
+            if (isCustomError(error)) {
+                console.error('Error saving function:', error.message);
+            } else {
+                console.error('Unknown error occurred while saving the function.');
+            }
+        }
+    };
+
+    const copyToClipboard = () => {
+        if (apiEndpoint) {
+            navigator.clipboard.writeText(apiEndpoint);
+            alert('API URL copied to clipboard!');
         }
     };
 
@@ -111,21 +124,40 @@ const FunctionEditor = () => {
                     <Editor
                         height="300px"
                         language="javascript"
-                        theme={editorTheme} // Use dynamic theme
+                        theme={editorTheme}
                         value={code}
                         onMount={handleEditorDidMount}
-                        onChange={(newCode) => setCode(newCode || '')} // Ensure newCode is not undefined
+                        onChange={(newCode) => setCode(newCode || '')}
                         options={{
                             automaticLayout: true,
-                            minimap: { enabled: false }, // Disable minimap for better visibility
+                            minimap: { enabled: false },
                         }}
                     />
                 ) : (
                     <div className="text-center">Loading editor...</div>
                 )}
-                <button className="btn btn-ghost btn-sm btn-square mt-4 text-base-content" onClick={runCode}>
-                    <Play className="w-6 h-6"></Play>
-                </button>
+                <div className="flex space-x-4 mt-4">
+                    <button className="btn btn-ghost btn-sm btn-square text-base-content" onClick={runCode}>
+                        <Play className="w-6 h-6" />
+                    </button>
+                    <button className="btn btn-ghost btn-sm btn-square text-base-content" onClick={saveFunction}>
+                        <Save className="w-6 h-6" />
+                    </button>
+                    <div className="relative w-3/5">
+                        <input
+                            type="text"
+                            readOnly
+                            className="input input-bordered input-sm w-full bg-base-200 text-base-content pr-10"
+                            value={apiEndpoint || 'Save to generate API URL'}
+                        />
+                        {apiEndpoint && (
+                            <Clipboard
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 cursor-pointer"
+                                onClick={copyToClipboard}
+                            />
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

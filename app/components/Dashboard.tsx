@@ -28,7 +28,8 @@ export default function Dashboard({ user }: { user: User }) {
             {/* Function Container Section */}
             <div className="mb-8">
                 <div className="bg-base-100 rounded-lg shadow-lg p-6 space-y-4">
-                    <FunctionContainer />
+                    <h2 className="text-lg text-base-content font-semibold mb-4">Functions</h2>
+                    <FunctionContainer/>
                 </div>
             </div>
 

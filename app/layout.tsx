@@ -5,6 +5,7 @@ import ThemeSwitcher from "@/app/components/ThemeSwitcher";
 import AuthButton from "@/app/components/AuthButton";
 import Logo from "@/app/components/Logo"
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProfileProvider} from "@/contexts/ProfileContext";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -30,6 +31,7 @@ export default function RootLayout({
     return (
         <html lang="en">
         <AuthProvider>
+            <ProfileProvider>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
@@ -46,6 +48,7 @@ export default function RootLayout({
             </header>
             <main>{children}</main>
             </body>
+            </ProfileProvider>
         </AuthProvider>
         </html>
     );
