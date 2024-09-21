@@ -58,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     let requestData = {};
     try {
         requestData = await req.json();
-    } catch (error) {
+    } catch {
         return new NextResponse(
             JSON.stringify({ error: 'Invalid JSON body' }),
             { status: 400 }
@@ -71,9 +71,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const result = await userFunction(requestData); // Pass requestData directly as context
 
         return new NextResponse(JSON.stringify({ result }), { status: 200 });
-    } catch (error: any) {
+    } catch {
         return new NextResponse(
-            JSON.stringify({ error: `Error executing function: ${error.message}` }),
+            JSON.stringify({ error: `Error executing function` }),
             { status: 500 }
         );
     }
