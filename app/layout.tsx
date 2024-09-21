@@ -6,6 +6,8 @@ import AuthButton from "@/app/components/AuthButton";
 import Logo from "@/app/components/Logo"
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProfileProvider} from "@/contexts/ProfileContext";
+import {Toaster} from "react-hot-toast";
+import React from "react";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -32,6 +34,7 @@ export default function RootLayout({
         <html lang="en">
         <AuthProvider>
             <ProfileProvider>
+                <Toaster/>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
