@@ -2,7 +2,7 @@
 
 import {useParams, useRouter} from 'next/navigation';
 import {useEffect, useRef, useState} from 'react';
-import {ArrowLeft, Clipboard, Edit, Play, Save} from 'lucide-react';
+import {ArrowLeft, Clipboard, Edit, Save} from 'lucide-react';
 import Editor, {OnMount, useMonaco} from '@monaco-editor/react';
 import draculaTheme from '@/themes/Dracula.json';
 import {useProfile} from '@/contexts/ProfileContext';
@@ -15,7 +15,7 @@ interface CustomError extends Error {
 
 const FunctionEditor = () => {
     const {id} = useParams<{ id: string }>();
-    const {user, functions, updateFunctions} = useProfile();
+    const {functions, updateFunctions} = useProfile();
     const monaco = useMonaco();
     const [code, setCode] = useState<string>('');
     const [functionName, setFunctionName] = useState<string>('');
@@ -37,11 +37,16 @@ const FunctionEditor = () => {
     }, [monaco]);
 
     useEffect(() => {
+        // Fetch the function data from the context
         const functionData = functions.find((fn) => fn.id === parseInt(id, 10));
         if (functionData) {
             setFunctionName(functionData.name);
-            setCode(functionData.code);
+            setCode(functionData.code || ''); // Ensure that the code is a non-null string
             adjustInputWidth(functionData.name); // Adjust width based on initial name
+
+            // Set the API endpoint without saving
+            const apiUrl = `${window.location.origin}/api/functions?id=${id}`;
+            setApiEndpoint(apiUrl);
         }
     }, [id, functions]);
 
@@ -72,46 +77,22 @@ const FunctionEditor = () => {
         return typeof error === 'object' && error !== null && 'message' in error;
     };
 
-    const runCode = () => {
-        try {
-            const result = eval(`(async () => {
-                ${code}
-            })()`);
-            console.log('Result:', result);
-            toast.success('Code executed successfully!');
-        } catch (error: unknown) {
-            if (isCustomError(error)) {
-                toast.error(`Error executing code: ${error.message}`);
-                console.error('Error executing code:', error.message);
-            } else {
-                toast.error('Unknown error occurred while executing code.');
-                console.error('Unknown error occurred');
-            }
-        }
-    };
-
-    // Function to save the function code and name to the backend and generate API URL
+    // Save the function code to the backend
     const saveFunction = async () => {
         try {
             const updatedFunctions = functions.map((fn) =>
-                fn.id === parseInt(id, 10) ? {...fn, code, name: functionName} : fn
+                fn.id === parseInt(id, 10) ? {...fn, code} : fn
             );
             updateFunctions(updatedFunctions);
 
-            // Generate the API URL
-            if (user) {
-                const apiUrl = `${window.location.origin}/api/functions?id=${id}`;
-                setApiEndpoint(apiUrl);
-                toast.success('Function updated!');
-                console.log('Function saved and API URL generated:', apiUrl);
-            }
+            toast.success('Code saved!');
         } catch (error: unknown) {
             if (isCustomError(error)) {
-                toast.error(`Error saving function: ${error.message}`);
-                console.error('Error saving function:', error.message);
+                toast.error(`Error saving function code: ${error.message}`);
+                console.error('Error saving function code:', error.message);
             } else {
-                toast.error('Unknown error occurred while saving the function.');
-                console.error('Unknown error occurred while saving the function.');
+                toast.error('Unknown error occurred while saving the function code.');
+                console.error('Unknown error occurred while saving the function code.');
             }
         }
     };
@@ -119,7 +100,7 @@ const FunctionEditor = () => {
     const copyToClipboard = () => {
         if (apiEndpoint) {
             navigator.clipboard.writeText(apiEndpoint);
-            toast.success('API URL copied to clipboard!');
+            toast.success('URL copied!');
         }
     };
 
@@ -129,7 +110,27 @@ const FunctionEditor = () => {
 
     const handleNameBlur = () => {
         setIsEditingName(false);
-        saveFunction();
+        saveFunctionName(); // Save the function name on blur
+    };
+
+    // Save the function name to the backend
+    const saveFunctionName = async () => {
+        try {
+            const updatedFunctions = functions.map((fn) =>
+                fn.id === parseInt(id, 10) ? {...fn, name: functionName} : fn
+            );
+            updateFunctions(updatedFunctions);
+
+            toast.success('Name saved!');
+        } catch (error: unknown) {
+            if (isCustomError(error)) {
+                toast.error(`Error saving function name: ${error.message}`);
+                console.error('Error saving function name:', error.message);
+            } else {
+                toast.error('Unknown error occurred while saving the function name.');
+                console.error('Unknown error occurred while saving the function name.');
+            }
+        }
     };
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,17 +177,18 @@ const FunctionEditor = () => {
                     {/* Hidden span to measure input text width */}
                     <span className="absolute top-0 left-0 invisible whitespace-pre" ref={hiddenSpanRef}/>
                 </div>
-                {isThemeLoaded && code ? (
+                {isThemeLoaded ? (
                     <Editor
                         height="300px"
                         language="javascript"
                         theme={editorTheme}
                         value={code}
                         onMount={handleEditorDidMount}
-                        onChange={(newCode) => setCode(newCode || '')}
+                        onChange={(newCode) => setCode(newCode || '')} // Prevent null values
                         options={{
                             automaticLayout: true,
                             minimap: {enabled: false},
+                            placeholder: 'Enter your function code here...', // Add a placeholder when the editor is empty
                         }}
                     />
                 ) : (
@@ -197,9 +199,6 @@ const FunctionEditor = () => {
                     </div>
                 )}
                 <div className="flex space-x-4 mt-4">
-                    <button className="btn btn-ghost btn-sm btn-square text-base-content" onClick={runCode}>
-                        <Play className="w-6 h-6"/>
-                    </button>
                     <button className="btn btn-ghost btn-sm btn-square text-base-content" onClick={saveFunction}>
                         <Save className="w-6 h-6"/>
                     </button>
@@ -208,7 +207,7 @@ const FunctionEditor = () => {
                             type="text"
                             readOnly
                             className="input input-bordered input-sm w-full bg-base-200 text-base-content pr-10"
-                            value={apiEndpoint || 'Save to generate API URL'}
+                            value={apiEndpoint || 'Loading API URL...'}
                         />
                         <Clipboard
                             className="absolute right-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 cursor-pointer"
