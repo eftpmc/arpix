@@ -25,7 +25,7 @@ export default function Dashboard({user}: { user: User }) {
                             Create your first function
                         </h1>
                         <button
-                            className="mt-4 btn bg-base-300 hover:bg-base-300 border-none text-base-content rounded-md group"
+                            className="mt-4 btn bg-base-100 hover:bg-base-100 border-none text-base-content rounded-md group"
                         >
                             Get Started
                             <span className="transform transition-transform duration-300 group-hover:translate-x-1 p-1">
